@@ -4,3 +4,12 @@ export interface INote {
 	content: string;
 	date?: any;
 }
+
+export interface IWindow {
+	note_modal: {
+		showModal: () => void;
+	};
+	new_modal: {
+		showModal: () => void;
+	};
+}

@@ -1,12 +1,11 @@
 import { For, createSignal, onMount } from "solid-js";
-import { A } from "solid-start";
-import Counter from "~/components/Counter";
 import Note from "~/components/Note";
 import { createNote, getNotes, subscribeToNotes } from "~/lib/pocketbase";
-import { INote } from "~/lib/types";
+import { INote, IWindow } from "~/lib/types";
 
 export default function Home() {
 	const [notes, setNotes] = createSignal([] as INote[]);
+	const [opendNote, setOpenNote] = createSignal<INote | null>(null);
 	const [title, setTitle] = createSignal<string>("");
 	const [content, setContent] = createSignal<string>("");
 
@@ -14,6 +13,12 @@ export default function Home() {
 		setNotes([...notes(), await createNote(title(), content())]);
 		setTitle("");
 		setContent("");
+	};
+
+	const onOpenNote = (note: INote) => {
+		setOpenNote(note);
+		let w = window as unknown as IWindow;
+		w.note_modal.showModal();
 	};
 
 	onMount(async () => {
@@ -30,7 +35,10 @@ export default function Home() {
 			{/* modal button */}
 			<button
 				class="btn btn-success btn-o px-4 ml-10 w-20"
-				onClick={() => window.new_modal.showModal()}
+				onClick={() => {
+					let w = window as unknown as IWindow;
+					w.new_modal.showModal();
+				}}
 			>
 				New
 			</button>
@@ -60,10 +68,26 @@ export default function Home() {
 					</div>
 				</form>
 			</dialog>
+			{/* Modal */}
+			<dialog id="note_modal" class="modal">
+				<form method="dialog" class="modal-box">
+					<h3 class="font-bold text-lg">{opendNote()?.title}</h3>
+					<p innerHTML={opendNote()?.content} />
+					<div class="modal-action">
+						<button class="btn">Close</button>
+					</div>
+				</form>
+			</dialog>
 
 			{/* Notes */}
 			<div class="flex gap-3 flex-wrap m-10">
-				<For each={notes()}>{(note: INote) => <Note note={note} />}</For>
+				<For each={notes()}>
+					{(note: INote) => (
+						<div onClick={() => onOpenNote(note)}>
+							<Note note={note} />
+						</div>
+					)}
+				</For>
 			</div>
 		</main>
 	);
